@@ -39,20 +39,15 @@ private:
 // Function to build the Huffman Tree from the input text
 void HuffmanCoding::buildHuffmanTree(const string &text) {
     unordered_map<char, int> freq;
-    
-    // Count frequency of each character in the text
     for (char ch : text) {
         freq[ch]++;
     }
 
     priority_queue<Node*, vector<Node*>, Compare> pq;
-    
-    // Create a priority queue of nodes
     for (auto pair : freq) {
         pq.push(new Node(pair.first, pair.second));
     }
 
-    // Build the Huffman Tree
     while (pq.size() != 1) {
         Node *left = pq.top(); pq.pop();
         Node *right = pq.top(); pq.pop();
@@ -62,14 +57,13 @@ void HuffmanCoding::buildHuffmanTree(const string &text) {
         pq.push(newNode);
     }
 
-    root = pq.top(); // Root of the Huffman Tree
+    root = pq.top();
 }
 
 // Function to encode characters based on the Huffman Tree
 void HuffmanCoding::encode(Node* root, const string &str) {
     if (!root) return;
 
-    // Store the code for leaf nodes
     if (!root->left && !root->right) {
         huffmanCode[root->data] = str;
     }
@@ -82,7 +76,6 @@ void HuffmanCoding::encode(Node* root, const string &str) {
 void HuffmanCoding::decode(Node* root, int &index, const string &str) {
     if (!root) return;
 
-    // If leaf node, print the character
     if (!root->left && !root->right) {
         cout << root->data;
         return;
@@ -99,11 +92,9 @@ void HuffmanCoding::decode(Node* root, int &index, const string &str) {
 // Function to compress the input file
 void HuffmanCoding::compress(const string &inputFile, const string &outputFile) {
     ifstream inFile(inputFile);
-    
-    // Error handling for file opening
     if (!inFile) {
         cerr << "Error: Unable to open input file: " << inputFile << endl;
-        exit(EXIT_FAILURE); // Exit the program if the file can't be opened
+        exit(EXIT_FAILURE);
     }
     
     string text((istreambuf_iterator<char>(inFile)), istreambuf_iterator<char>());
@@ -118,11 +109,9 @@ void HuffmanCoding::compress(const string &inputFile, const string &outputFile) 
     }
 
     ofstream outFile(outputFile, ios::binary);
-    
-    // Error handling for file writing
     if (!outFile) {
         cerr << "Error: Unable to open output file: " << outputFile << endl;
-        exit(EXIT_FAILURE); // Exit the program if the output file can't be opened
+        exit(EXIT_FAILURE);
     }
 
     bitset<8> bits;
@@ -134,7 +123,6 @@ void HuffmanCoding::compress(const string &inputFile, const string &outputFile) 
         }
     }
 
-    // Handle any remaining bits
     if (encodedString.size() % 8 != 0) {
         outFile.put(static_cast<char>(bits.to_ulong()));
     }
@@ -145,11 +133,9 @@ void HuffmanCoding::compress(const string &inputFile, const string &outputFile) 
 // Function to decompress the encoded file
 void HuffmanCoding::decompress(const string &inputFile, const string &outputFile) {
     ifstream inFile(inputFile, ios::binary);
-    
-    // Error handling for file opening
     if (!inFile) {
         cerr << "Error: Unable to open input file for decompression: " << inputFile << endl;
-        exit(EXIT_FAILURE); // Exit the program if the input file can't be opened
+        exit(EXIT_FAILURE);
     }
 
     string encodedString;
@@ -170,22 +156,69 @@ void HuffmanCoding::decompress(const string &inputFile, const string &outputFile
     cout << endl;
 }
 
+// Function to display the menu
+void displayMenu() {
+    cout << "\nHuffman Coding Tool Menu\n";
+    cout << "1. Compress a file\n";
+    cout << "2. Decompress a file\n";
+    cout << "3. Exit\n";
+    cout << "Choose an option: ";
+}
+
+// Function to get user input with error handling
+int getUserChoice() {
+    int choice;
+    while (true) {
+        cin >> choice;
+        if (cin.fail()) { // Check for invalid input
+            cin.clear(); // Clear the error flag
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard invalid input
+            cout << "Invalid input. Please enter a number (1-3): ";
+        } else {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear the buffer
+            if (choice >= 1 && choice <= 3) {
+                return choice; // Valid choice
+            } else {
+                cout << "Invalid choice. Please enter a number between 1 and 3: ";
+            }
+        }
+    }
+}
+
 int main() {
     HuffmanCoding huffman;
-    string inputFile, compressedFile, decompressedFile;
+    int choice;
 
-    cout << "Enter the path to the input file for compression: ";
-    cin >> inputFile;
-    compressedFile = "compressed.bin"; // Default output file name
-    decompressedFile = "decompressed.txt"; // Default decompressed output file name
+    while (true) {
+        displayMenu();
+        choice = getUserChoice(); // Use the function to get user input
 
-    // Compress the input file
-    huffman.compress(inputFile, compressedFile);
-    cout << "File compressed successfully to " << compressedFile << "." << endl;
-
-    // Decompress the compressed file
-    huffman.decompress(compressedFile, decompressedFile);
-    cout << "File decompressed successfully. Output is shown in the console." << endl;
+        switch (choice) {
+            case 1: {
+                string inputFile, compressedFile;
+                cout << "Enter the path to the input file for compression: ";
+                cin >> inputFile;
+                compressedFile = "compressed.bin"; // Default output file name
+                huffman.compress(inputFile, compressedFile);
+                cout << "File compressed successfully to " << compressedFile << "." << endl;
+                break;
+            }
+            case 2: {
+                string compressedFile, decompressedFile;
+                cout << "Enter the path to the compressed file: ";
+                cin >> compressedFile;
+                decompressedFile = "decompressed.txt"; // Default decompressed output file name
+                huffman.decompress(compressedFile, decompressedFile);
+                cout << "File decompressed successfully. Output is shown in the console." << endl;
+                break;
+            }
+            case 3:
+                cout << "Exiting the program." << endl;
+                exit(EXIT_SUCCESS);
+            default:
+                cout << "This should not happen! Please try again." << endl;
+        }
+    }
 
     return 0;
 }
